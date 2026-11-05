@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  DONOR
+  ADMIN
+}
+
+enum DonationType {
+  ONE_TIME
+  MONTHLY
+}
+
+enum DonationStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum CampaignStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  phone         String?
+  passwordHash  String
+  name          String
+  pan           String?
+  role          UserRole   @default(DONOR)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  donations     Donation[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Scheme {
+  id              String   @id @default(uuid())
+  code            String   @unique
+  nameHi          String
+  nameEn          String
+  descriptionHi   String
+  descriptionEn   String
+  summaryHi       String?
+  summaryAiDraft  String?
+  summaryApproved Boolean  @default(false)
+  category        String
+  eligibility     Json
+  benefits        String
+  benefitsHi      String
+  documents       String[]
+  documentsHi     String[]
+  applicationProcess   String
+  applicationProcessHi String
+  sourceUrl       String?
+  lastCheckedDate DateTime?
+  helpCentreId    String?
+  helpCentre      HelpCentre? @relation(fields: [helpCentreId], references: [id])
+  published       Boolean  @default(false)
+  district        String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category])
+  @@index([published])
+  @@index([code])
+}
+
+model HelpCentre {
+  id        String   @id @default(uuid())
+  name      String
+  nameHi    String
+  address   String
+  addressHi String
+  phone     String
+  district  String
+  schemes   Scheme[]
+  createdAt DateTime @default(now())
+}
+
+model Campaign {
+  id          String         @id @default(uuid())
+  title       String
+  titleHi     String
+  description String
+  descriptionHi String
+  targetAmount Float
+  raisedAmount Float         @default(0)
+  status      CampaignStatus @default(ACTIVE)
+  startDate   DateTime
+  endDate     DateTime?
+  donations   Donation[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([status])
+}
+
+model Donation {
+  id              String         @id @default(uuid())
+  receiptNumber   String         @unique
+  donorId         String
+  donor           User           @relation(fields: [donorId], references: [id])
+  campaignId      String?
+  campaign        Campaign?      @relation(fields: [campaignId], references: [id])
+  amount          Float
+  type            DonationType   @default(ONE_TIME)
+  status          DonationStatus @default(PENDING)
+  paymentId       String?        @unique
+  idempotencyKey  String         @unique
+  donorName       String
+  donorEmail      String
+  donorPhone      String?
+  donorPan        String?
+  certificateNumber String?      @unique
+  pdfGenerated    Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([donorId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([receiptNumber])
+}
+
+model ReceiptSequence {
+  id          Int    @id @default(autoincrement())
+  fiscalYear  String @unique
+  lastNumber  Int    @default(0)
+
+  @@map("receipt_sequences")
+}
