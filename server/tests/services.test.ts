@@ -274,6 +274,26 @@ describe('DonationService', () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
+  it('should re-check idempotency inside the transaction', async () => {
+    const existing = { id: 'don-1', receiptNumber: 'REC-001', status: 'SUCCESS' };
+    const transactionDonation = { findUnique: vi.fn().mockResolvedValue(existing) };
+    (prisma.donation.findUnique as any).mockResolvedValue(null);
+    (prisma.$transaction as any).mockImplementation(async (callback: (tx: unknown) => unknown) =>
+      callback({ donation: transactionDonation })
+    );
+
+    const result = await DonationService.processDonation({
+      donorId: 'user-1', amount: 5000, type: 'ONE_TIME',
+      donorName: 'Test', donorEmail: 'test@example.com',
+      idempotencyKey: 'concurrent-key',
+    });
+
+    expect(result).toEqual(existing);
+    expect(transactionDonation.findUnique).toHaveBeenCalledWith({
+      where: { idempotencyKey: 'concurrent-key' },
+    });
+  });
+
   it('should reject amounts below 100', async () => {
     (prisma.donation.findUnique as any).mockResolvedValue(null);
 

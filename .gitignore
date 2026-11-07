@@ -31,3 +31,6 @@ server/prisma/*.db
 
 # Coverage
 coverage/
+
+# TypeScript incremental build metadata
+*.tsbuildinfo
