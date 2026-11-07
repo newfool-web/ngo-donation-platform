@@ -34,7 +34,7 @@ router.get('/my', authenticate, async (req: AuthRequest, res: Response, next: Ne
 router.get('/:id', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const donorId = req.user!.role === 'ADMIN' ? undefined : req.user!.id;
-    const donation = await DonationService.getDonationById(req.params.id, donorId);
+    const donation = await DonationService.getDonationById(req.params.id as string, donorId);
     res.json({ success: true, data: donation });
   } catch (error) {
     next(error);
@@ -45,7 +45,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response, next: N
 router.get('/:id/receipt', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const donorId = req.user!.role === 'ADMIN' ? undefined : req.user!.id;
-    const donation = await DonationService.getDonationById(req.params.id, donorId);
+    const donation = await DonationService.getDonationById(req.params.id as string, donorId);
 
     if (donation.status !== 'SUCCESS') {
       return res.status(400).json({ success: false, message: 'Receipt available only for successful donations' });
@@ -73,7 +73,7 @@ router.get('/:id/receipt', authenticate, async (req: AuthRequest, res: Response,
 router.get('/:id/certificate', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const donorId = req.user!.role === 'ADMIN' ? undefined : req.user!.id;
-    const donation = await DonationService.getDonationById(req.params.id, donorId);
+    const donation = await DonationService.getDonationById(req.params.id as string, donorId);
 
     if (donation.status !== 'SUCCESS') {
       return res.status(400).json({ success: false, message: 'Certificate available only for successful donations' });

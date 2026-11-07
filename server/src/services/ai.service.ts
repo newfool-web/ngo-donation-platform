@@ -50,7 +50,7 @@ Write ONLY the Hindi summary, nothing else.`;
         return this.fallbackSummary(schemeInfo);
       }
 
-      const result = await response.json();
+      const result: any = await response.json();
       const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!text) {

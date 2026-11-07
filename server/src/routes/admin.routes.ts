@@ -8,6 +8,7 @@ import { DonationService } from '../services/donation.service';
 import { AiService } from '../services/ai.service';
 
 const router = Router();
+const paramId = (req: AuthRequest) => req.params.id as string;
 
 // All admin routes require authentication + admin role
 router.use(authenticate, requireAdmin);
@@ -61,7 +62,7 @@ router.put('/schemes/:id', async (req: AuthRequest, res: Response, next: NextFun
       ...req.body,
       lastCheckedDate: req.body.lastCheckedDate ? new Date(req.body.lastCheckedDate) : undefined,
     };
-    const scheme = await SchemeService.update(req.params.id, data);
+    const scheme = await SchemeService.update(req.params.id as string, data);
     res.json({ success: true, data: scheme });
   } catch (error) {
     next(error);
@@ -70,7 +71,7 @@ router.put('/schemes/:id', async (req: AuthRequest, res: Response, next: NextFun
 
 router.patch('/schemes/:id/toggle-publish', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const scheme = await SchemeService.togglePublish(req.params.id);
+    const scheme = await SchemeService.togglePublish(req.params.id as string);
     res.json({ success: true, data: scheme });
   } catch (error) {
     next(error);
@@ -80,7 +81,7 @@ router.patch('/schemes/:id/toggle-publish', async (req: AuthRequest, res: Respon
 // AI summary generation
 router.post('/schemes/:id/generate-summary', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const scheme = await SchemeService.getById(req.params.id);
+    const scheme = await SchemeService.getById(req.params.id as string);
     const summary = await AiService.generateHindiSummary({
       nameEn: scheme.nameEn,
       nameHi: scheme.nameHi,
@@ -90,7 +91,7 @@ router.post('/schemes/:id/generate-summary', async (req: AuthRequest, res: Respo
     });
 
     if (summary) {
-      await SchemeService.update(req.params.id, {
+      await SchemeService.update(req.params.id as string, {
         summaryAiDraft: summary,
         summaryApproved: false,
       });
@@ -104,7 +105,7 @@ router.post('/schemes/:id/generate-summary', async (req: AuthRequest, res: Respo
 
 router.patch('/schemes/:id/approve-summary', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const scheme = await SchemeService.approveSummary(req.params.id);
+    const scheme = await SchemeService.approveSummary(req.params.id as string);
     res.json({ success: true, data: scheme });
   } catch (error) {
     next(error);
@@ -142,7 +143,7 @@ router.put('/campaigns/:id', async (req: AuthRequest, res: Response, next: NextF
       startDate: req.body.startDate ? new Date(req.body.startDate) : undefined,
       endDate: req.body.endDate ? new Date(req.body.endDate) : undefined,
     };
-    const campaign = await CampaignService.update(req.params.id, data);
+    const campaign = await CampaignService.update(req.params.id as string, data);
     res.json({ success: true, data: campaign });
   } catch (error) {
     next(error);
@@ -151,7 +152,7 @@ router.put('/campaigns/:id', async (req: AuthRequest, res: Response, next: NextF
 
 router.patch('/campaigns/:id/toggle-status', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const campaign = await CampaignService.toggleStatus(req.params.id);
+    const campaign = await CampaignService.toggleStatus(req.params.id as string);
     res.json({ success: true, data: campaign });
   } catch (error) {
     next(error);
@@ -160,7 +161,7 @@ router.patch('/campaigns/:id/toggle-status', async (req: AuthRequest, res: Respo
 
 router.get('/campaigns/:id/report', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const report = await CampaignService.getReport(req.params.id);
+    const report = await CampaignService.getReport(req.params.id as string);
     res.json({ success: true, data: report });
   } catch (error) {
     next(error);

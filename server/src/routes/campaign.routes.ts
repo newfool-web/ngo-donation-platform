@@ -14,7 +14,7 @@ router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const campaign = await CampaignService.getById(req.params.id);
+    const campaign = await CampaignService.getById(req.params.id as string);
     res.json({ success: true, data: campaign });
   } catch (error) {
     next(error);

@@ -36,7 +36,7 @@ router.get('/districts', async (_req: Request, res: Response, next: NextFunction
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const scheme = await SchemeService.getById(req.params.id);
+    const scheme = await SchemeService.getById(req.params.id as string);
     res.json({ success: true, data: scheme });
   } catch (error) {
     next(error);
