@@ -167,6 +167,17 @@ After the frontend URL is known, update the backend `CORS_ORIGIN` value to that
 exact URL and redeploy the backend. Preview deployments require their preview
 origin to be added to the comma-separated allowlist if they must call the API.
 
+When using Supabase's transaction pooler with Prisma, keep the exact URI
+provided by Supabase and include `pgbouncer=true` in its query string when
+required by the pooler configuration. For example, the URI may end with:
+
+```text
+?pgbouncer=true
+```
+
+Do not manually change the host, username, port, or region from the Supabase
+connection string. URL-encode reserved characters in the password.
+
 ### Environment variables (production)
 
 | Variable         | Description                                         |

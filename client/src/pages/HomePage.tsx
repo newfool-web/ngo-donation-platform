@@ -19,15 +19,25 @@ export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState<string>('');
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       api.getSchemes(activeCategory ? { category: activeCategory } : undefined),
       api.getCampaigns(),
     ])
-      .then(([s, c]: any) => {
-        setSchemes(s.data || []);
-        setCampaigns(c.data || []);
+      .then(([schemesResult, campaignsResult]) => {
+        if (schemesResult.status === 'fulfilled') {
+          setSchemes(Array.isArray(schemesResult.value.data) ? schemesResult.value.data : []);
+        } else {
+          console.error('Failed to load schemes:', schemesResult.reason);
+          setSchemes([]);
+        }
+
+        if (campaignsResult.status === 'fulfilled') {
+          setCampaigns(Array.isArray(campaignsResult.value.data) ? campaignsResult.value.data : []);
+        } else {
+          console.error('Failed to load campaigns:', campaignsResult.reason);
+          setCampaigns([]);
+        }
       })
-      .catch(console.error)
       .finally(() => setLoading(false));
   }, [activeCategory]);
 
