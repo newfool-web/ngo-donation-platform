@@ -148,7 +148,9 @@ https://<backend-project>.vercel.app/api/health
 
 #### 3. Deploy the frontend
 
-Create a second Vercel project with the repository root set to `client`. Set
+Create a second Vercel project with the repository root set to `client`. The
+client project uses `client/vercel.json` so direct navigation to routes such as
+`/login` is handled by the React SPA instead of returning a Vercel `404`. Set
 this build-time variable for the target environment:
 
 ```text
