@@ -6,9 +6,11 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:sample-schemes": "tsx prisma/sample-schemes.ts",
     "db:generate": "prisma generate",
     "test": "vitest run",
     "test:watch": "vitest"

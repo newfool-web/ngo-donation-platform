@@ -70,6 +70,9 @@ npx prisma generate
 
 # Seed with illustrative data
 npx tsx prisma/seed.ts
+
+# Add repeatable district-specific examples for filter testing
+npx tsx prisma/sample-schemes.ts
 ```
 
 ### 4. Frontend setup
@@ -127,8 +130,9 @@ All 28 tests cover:
 | JWT_EXPIRES_IN  | No       | Token expiry (default: 7d)            |
 | PORT            | No       | Server port (default: 3000)           |
 | NODE_ENV        | No       | Environment (default: development)    |
-| CORS_ORIGIN     | No       | Frontend URL (default: localhost:5173)|
+| CORS_ORIGIN     | No       | Comma-separated allowed frontend origins (default: localhost:5173) |
 | GEMINI_API_KEY  | No       | Gemini API key for AI summaries       |
+| VITE_API_URL    | No       | Frontend build-time API base URL (default: /api) |
 
 ## Production Deployment
 
@@ -146,10 +150,12 @@ npm run build    # Output in server/dist/
 
 ### Deploy
 
-1. Serve `client/dist/` via any static hosting (Vercel, Netlify, Nginx)
-2. Run `server/dist/index.js` with Node.js and a PostgreSQL database
-3. Set `CORS_ORIGIN` to the frontend URL
-4. Run `npx prisma db push` and `npx tsx prisma/seed.ts` against production DB
+1. Deploy `server/` as a Vercel project. The serverless entry point is `server/api/index.ts`.
+2. Set `CORS_ORIGIN` to the deployed frontend URL (comma-separate local and preview origins if needed).
+3. Set the backend environment variables in the Vercel project.
+4. Run `npx prisma db push` and the seed scripts against the production database from a trusted local terminal.
+5. Deploy `client/` as a separate Vercel project.
+6. Set `VITE_API_URL` to the deployed backend URL followed by `/api`, then redeploy the frontend.
 
 ## Project Structure
 

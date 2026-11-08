@@ -38,9 +38,18 @@ export const schemeSchema = z.object({
   documentsHi: z.array(z.string()),
   applicationProcess: z.string().min(1),
   applicationProcessHi: z.string().min(1),
-  sourceUrl: z.string().url().optional(),
-  lastCheckedDate: z.string().optional(),
-  helpCentreId: z.string().uuid().optional(),
+  sourceUrl: z.preprocess(
+    value => value === '' ? undefined : value,
+    z.string().url().optional()
+  ),
+  lastCheckedDate: z.preprocess(
+    value => value === '' ? undefined : value,
+    z.string().optional()
+  ),
+  helpCentreId: z.preprocess(
+    value => value === '' ? undefined : value,
+    z.string().uuid().optional()
+  ),
   district: z.array(z.string()),
 });
 

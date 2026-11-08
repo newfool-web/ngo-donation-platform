@@ -52,8 +52,12 @@ export default function AdminSchemesPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const sourceUrl = form.sourceUrl.trim();
+      const lastCheckedDate = form.lastCheckedDate.trim();
       await api.createScheme({
         ...form,
+        sourceUrl: sourceUrl || undefined,
+        lastCheckedDate: lastCheckedDate || undefined,
         eligibility: JSON.parse(form.eligibility || '{}'),
         documents: form.documents.split(',').map(s => s.trim()).filter(Boolean),
         documentsHi: form.documentsHi.split(',').map(s => s.trim()).filter(Boolean),
