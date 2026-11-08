@@ -3,6 +3,8 @@
 
 **GitHub:** https://github.com/newfool-web/ngo-donation-platform
 
+**Live app:** https://company-a-client.vercel.app/
+
 ---
 
 ## 1. Architecture & Technology Decisions
@@ -28,6 +30,21 @@ The application follows a modular monolithic architecture with clear separation:
 - **Express**: Mature, well-documented, low overhead for API routes
 - **PostgreSQL + Prisma**: Atomic sequences for receipt numbering, strong schema enforcement, type-safe queries
 - **Tailwind CSS**: Utility-first for rapid UI iteration, small CSS bundle (4.5KB gzipped)
+
+### Deployment topology
+
+The application can run as a traditional Node process or as two separate Vercel
+projects:
+
+- The `client` project builds the Vite SPA.
+- The `server` project exposes the Express app through `server/api/index.ts`
+  and routes requests with `server/vercel.json`.
+- Both deployments use the same hosted PostgreSQL database through Prisma.
+- The frontend uses the build-time `VITE_API_URL` value. The backend uses the
+  comma-separated `CORS_ORIGIN` allowlist.
+- Vercel runs request handlers on demand; it is not a persistent worker host.
+  PDF files are therefore generated on demand in the request and are not
+  persisted to disk.
 
 ### Key design principles
 - Hindi-first UI with runtime language toggle
@@ -121,11 +138,12 @@ If Gemini API key is missing or API fails → fallback summary generated locally
 
 ## 4. AI Workflow & Limitations
 
-- **Model**: Gemini 2.0 Flash via REST API
+- **Model**: Gemini 3.5 Flash Lite via the Google Generative Language REST API
 - **Purpose**: Generate simple Hindi summaries of scheme information
 - **Temperature**: 0.3 (low for factual content)
 - **Safeguard**: AI output is ALWAYS a draft; requires admin approval before display
-- **Fallback**: Template-based Hindi summary if API unavailable
+- **Fallback**: Template-based Hindi summary if the API key is missing, the API
+  request fails, or the response does not contain usable text
 - **Limitations**:
   - Cannot verify eligibility rules
   - May produce inaccurate translations
@@ -145,6 +163,28 @@ If Gemini API key is missing or API fails → fallback summary generated locally
 - **Disclaimers**: Prominent on every scheme page and eligibility result
 - **FCRA notice**: Visible in donation flow blocking foreign cards
 
+### Key screens
+
+- **Home page**: Introduces the trust and provides direct paths to scheme
+  discovery, eligibility checking, and donation. The Hindi-first layout keeps
+  the primary actions understandable for the target audience.
+- **Schemes page**: Lists published welfare schemes with category and district
+  filters. Filtering is placed above the results so users can narrow a large
+  scheme catalogue without navigating away.
+- **Scheme detail page**: Presents the approved Hindi summary, full bilingual
+  description, eligibility, benefits, documents, application process, source,
+  and help-centre information in one place.
+- **Eligibility finder**: Uses a short guided questionnaire and returns
+  indicative matches with an explanation and disclaimer instead of presenting
+  the result as an official decision.
+- **Donation page**: Collects donor and PAN information, supports one-time or
+  monthly test donations, and exposes receipt and 80G certificate downloads
+  after a successful transaction.
+- **Donor dashboard**: Shows the authenticated donor's donation history and
+  provides access to generated documents.
+- **Admin dashboard**: Gives administrators operational statistics, recent
+  donations, scheme and campaign management, and the AI summary review flow.
+
 ---
 
 ## 6. Receipt Numbering & PDF Strategy
@@ -160,7 +200,8 @@ RETURNING "lastNumber" as next_number
 ```
 
 - **Format**: `REC-YYYYZZZZ-000001` (fiscal year + padded sequence)
-- **Atomicity**: PostgreSQL UPSERT guarantees no gaps or duplicates even under concurrent requests
+- **Atomicity**: PostgreSQL UPSERT guarantees unique numbers for committed
+  transactions even under concurrent requests
 - **Idempotency**: Each donation has a unique `idempotencyKey`; duplicate requests return existing record
 - **Transaction**: Donation creation + campaign update wrapped in Prisma `$transaction`
 
@@ -185,7 +226,7 @@ RETURNING "lastNumber" as next_number
 | Input validation        | Zod schemas on all POST/PUT endpoints       |
 | Rate limiting           | 100 req/15min general, 20 req/15min auth    |
 | Security headers        | Helmet middleware                            |
-| CORS                    | Restricted to configured origin             |
+| CORS                    | Restricted to configured origin allowlist   |
 | PAN protection          | Masked in PDFs, never exposed in list APIs  |
 | No secrets in repo      | .env excluded via .gitignore                |
 
@@ -203,7 +244,23 @@ RETURNING "lastNumber" as next_number
 
 ---
 
-## 9. Features Excluded (Future Improvements)
+## 9. Configuration and operational boundaries
+
+- `DATABASE_URL` is the Prisma PostgreSQL connection string. Reserved
+  characters in credentials must be percent-encoded in the URI; for example,
+  `@` in a password becomes `%40`.
+- `JWT_SECRET` and database credentials are deployment secrets and must not be
+  committed or placed in frontend variables.
+- `VITE_API_URL` is exposed in the browser bundle and must contain only the
+  public backend `/api` URL, never a secret.
+- The `/api/health` endpoint confirms that the serverless handler is reachable;
+  it does not perform a database readiness check.
+- Donation payment is simulated, and PDF output is illustrative rather than a
+  legally valid receipt or certificate.
+
+---
+
+## 10. Features Excluded (Future Improvements)
 
 - Real payment gateway integration (Razorpay/PayU)
 - Form 10BD automated generation

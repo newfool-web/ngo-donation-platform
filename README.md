@@ -38,11 +38,9 @@ cd server
 npm install
 ```
 
-Create `.env` file (copy from template):
+Create a local `.env` file (do not commit it):
 
-```bash
-cp .env.example .env
-```
+Create `server/.env` manually in your editor, then add the variables below.
 
 Edit `.env` with your values:
 
@@ -112,7 +110,7 @@ cd server
 npm test
 ```
 
-All 28 tests cover:
+All 29 tests cover:
 - Authentication & role permissions
 - Scheme CRUD operations
 - Eligibility matching (5 scenarios)
@@ -153,7 +151,7 @@ npm run build    # Output in server/dist/
 1. Deploy `server/` as a Vercel project. The serverless entry point is `server/api/index.ts`.
 2. Set `CORS_ORIGIN` to the deployed frontend URL (comma-separate local and preview origins if needed).
 3. Set the backend environment variables in the Vercel project.
-4. Run `npx prisma db push` and the seed scripts against the production database from a trusted local terminal.
+4. If the production database is new, run `npx prisma db push` and the seed scripts against it from a trusted local terminal. Do not repeat this step for an already-prepared database.
 5. Deploy `client/` as a separate Vercel project.
 6. Set `VITE_API_URL` to the deployed backend URL followed by `/api`, then redeploy the frontend.
 
